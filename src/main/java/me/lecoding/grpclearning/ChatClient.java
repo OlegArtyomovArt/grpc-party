@@ -15,17 +15,18 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ChatClient {
     private final ManagedChannel channel;
-    private ChatRoomGrpc.ChatRoomBlockingStub blockingStub;
-    private StreamObserver<Chat.HealthRequest> chat;
+    private PartyGrpc.PartyBlockingStub blockingStub;
+    private StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest> chat;
     private String token = "";
     private boolean Loggined = false;
+
     public ChatClient(String host, int port) {
         this(ManagedChannelBuilder.forAddress(host, port).usePlaintext().build());
     }
 
     private ChatClient(ManagedChannel channel) {
         this.channel = channel;
-        blockingStub = ChatRoomGrpc.newBlockingStub(channel);
+        blockingStub = PartyGrpc.newBlockingStub(channel);
     }
 
     public void shutdown() throws InterruptedException {
@@ -33,60 +34,60 @@ public class ChatClient {
     }
 
     public boolean login(String name) {
-        Chat.LoginRequest request = Chat.LoginRequest.newBuilder().setName(name).build();
-        Chat.LoginResponse response;
+        me.lecoding.grpclearning.PartyOuterClass.LoginRequest request = me.lecoding.grpclearning
+                .PartyOuterClass.LoginRequest.newBuilder()
+                .setName(name)
+                .setPassword("AAA")
+                .build();
+        PartyOuterClass.LoginResponse response;
         try {
             response = blockingStub.login(request);
         } catch (StatusRuntimeException e) {
-            log.error("rpc failed with status: {}, message: {}",e.getStatus(), e.getMessage());
+            log.error("rpc failed with status: {}, message: {}", e.getStatus(), e.getMessage());
             return false;
         }
-        log.info("login with name {} OK!",name);
+        log.info("login with name {} OK!", name);
         this.token = response.getToken();
         this.Loggined = true;
         startReceive();
         return true;
     }
 
-    private void startReceive(){
+    private void startReceive() {
         Metadata meta = new Metadata();
-        meta.put(Constant.HEADER_ROLE,this.token);
+        meta.put(Constant.HEADER_ROLE, this.token);
 
-        chat =  MetadataUtils.attachHeaders(ChatRoomGrpc.newStub(this.channel),meta).health(new StreamObserver<Chat.HealthResponse>() {
+        chat = MetadataUtils.attachHeaders(PartyGrpc.newStub(this.channel), meta).health(new StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse>() {
             @Override
-            public void onNext(Chat.HealthResponse value) {
-                switch (value.getEventCase()){
-                    case ROLE_LOGIN:
-                    {
-                        log.info("user {}:login!!",value.getRoleLogin().getName());
+            public void onNext(me.lecoding.grpclearning.PartyOuterClass.HealthResponse value) {
+                switch (value.getEventCase()) {
+                    case ROLE_LOGIN: {
+                        log.info("user {}:login!!", value.getRoleLogin().getName());
                     }
                     break;
-                    case ROLE_LOGOUT:
-                    {
-                        log.info("user {}:logout!!",value.getRoleLogout().getName());
+                    case ROLE_LOGOUT: {
+                        log.info("user {}:logout!!", value.getRoleLogout().getName());
                     }
                     break;
-                    case ROLE_MESSAGE:
-                    {
-                        log.info("user {}:{}",value.getRoleMessage().getName(),value.getRoleMessage().getMsg());
+                    case ROLE_MESSAGE: {
+                        log.info("user {}:{}", value.getRoleMessage().getName(), value.getRoleMessage().getMsg());
                     }
                     break;
-                    case EVENT_NOT_SET:
-                    {
-                        log.error("receive event error:{}",value);
+                    case EVENT_NOT_SET: {
+                        log.error("receive event error:{}", value);
                     }
                     break;
-                    case SERVER_SHUTDOWN:
-                    {
+                    case SERVER_SHUTDOWN: {
                         log.info("server closed!");
                         logout();
                     }
                     break;
                 }
             }
+
             @Override
             public void onError(Throwable t) {
-                log.error("got error from server:{}",t.getMessage(),t);
+                log.error("got error from server:{}", t.getMessage(), t);
             }
 
             @Override
@@ -95,23 +96,23 @@ public class ChatClient {
             }
         });
         Metadata header = new Metadata();
-        header.put(Constant.HEADER_ROLE,this.token);
+        header.put(Constant.HEADER_ROLE, this.token);
     }
 
     public void sendMessage(String msg) throws InterruptedException {
-        if("LOGOUT".equals(msg)){
+        if ("LOGOUT".equals(msg)) {
             this.chat.onCompleted();
             this.logout();
             this.Loggined = false;
             shutdown();
-        }else{
-            if(this.chat != null) this.chat.onNext(Chat.HealthRequest.newBuilder().setMessage(msg).build());
+        } else {
+            if (this.chat != null) this.chat.onNext(PartyOuterClass.HealthRequest.newBuilder().setMessage(msg).build());
         }
     }
 
-    public void logout(){
-        Chat.LogoutResponse resp = blockingStub.logout(Chat.LogoutRequest.newBuilder().build());
-        log.info("logout result:{}",resp);
+    public void logout() {
+        PartyOuterClass.LogoutResponse resp = blockingStub.logout(PartyOuterClass.LogoutRequest.newBuilder().build());
+        log.info("logout result:{}", resp);
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -119,14 +120,14 @@ public class ChatClient {
         try {
             String name = "";
             Scanner sc = new Scanner(System.in);
-            do{
+            do {
                 System.out.println("please input your nickname");
                 name = sc.nextLine();
-            }while (!client.login(name));
+            } while (!client.login(name));
 
-            while(client.Loggined){
+            while (client.Loggined) {
                 name = sc.nextLine();
-                if(client.Loggined)client.sendMessage(name);
+                if (client.Loggined) client.sendMessage(name);
             }
         } finally {
             client.shutdown();

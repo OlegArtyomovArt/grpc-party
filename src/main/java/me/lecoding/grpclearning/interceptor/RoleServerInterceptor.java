@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import me.lecoding.grpclearning.common.Constant;
 import me.lecoding.grpclearning.common.JWTUtils;
 import me.lecoding.grpclearning.manager.OnlineUserManager;
-import me.lecoding.grpclearning.user.User;
+import me.lecoding.grpclearning.user.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,14 +32,14 @@ public class RoleServerInterceptor implements ServerInterceptor {
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
         Context ctx = Context.current();
-        if (!"me.lecoding.grpclearning.ChatRoom/Login".equals(call.getMethodDescriptor().getFullMethodName())) {
+        if (!"me.lecoding.grpclearning.Party/Login".equals(call.getMethodDescriptor().getFullMethodName())) {
             String token = headers.get(Constant.HEADER_ROLE);
             if (token == null) {
                 call.close(Status.UNAUTHENTICATED.withDescription("need login first!"), headers);
                 return NOOP_LISTENER;
             }
             String userId = jwtUtils.checkToken(token);
-            User user = onlineUserManager.findUserById(userId);
+            UserDTO user = onlineUserManager.findUserById(userId);
             if (user == null) {
                 call.close(Status.UNAUTHENTICATED.withDescription("token error!"), headers);
                 return NOOP_LISTENER;

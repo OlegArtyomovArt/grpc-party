@@ -10,7 +10,7 @@ import me.lecoding.grpclearning.common.Constant;
 import me.lecoding.grpclearning.common.JWTUtils;
 import me.lecoding.grpclearning.interceptor.RoleServerInterceptor;
 import me.lecoding.grpclearning.manager.OnlineUserManager;
-import me.lecoding.grpclearning.user.User;
+import me.lecoding.grpclearning.user.UserDTO;
 import me.lecoding.grpclearning.user.UserService;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +32,13 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
 
     @Override
     public void login(me.lecoding.grpclearning.PartyOuterClass.LoginRequest  request, io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.LoginResponse> responseObserver) {
-        User user= userService.checkUser(request.getName(),request.getPassword());
+        UserDTO user= userService.checkUser(request.getName(),request.getPassword());
         if(Objects.isNull(user)){
             responseObserver.onError(Status.fromCode(Status.UNAUTHENTICATED.getCode()).withDescription("uasername or password error").asRuntimeException());
             return;
         }
         onlineUserManager.addUser(user);
-        responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getId())).build());
+        responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getUserName())).build());
         responseObserver.onCompleted();
         log.info("user {} login OK!",request.getName());
         broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
@@ -55,10 +55,10 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
     @Override
     public void logout(me.lecoding.grpclearning.PartyOuterClass.LogoutRequest request,
                        io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.LogoutResponse> responseObserver) {
-        User user = Constant.CONTEXT_ROLE.get();
+        UserDTO user = Constant.CONTEXT_ROLE.get();
         if(!Objects.isNull(user)) {
-            log.info("user logout:{}", user.getUsername());
-            onlineUserManager.removeUserById(user.getId());
+            log.info("user logout:{}", user.getUserName());
+            onlineUserManager.removeUserById(user.getUserName());
         }
         responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LogoutResponse.newBuilder().build());
         responseObserver.onCompleted();
@@ -68,7 +68,7 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
     public io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest> health(
             io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> responseObserver) {
         clients.add(responseObserver);
-        User user = Constant.CONTEXT_ROLE.get();
+        UserDTO user = Constant.CONTEXT_ROLE.get();
         if(Objects.isNull(user)) {
             responseObserver.onError(Status.UNAUTHENTICATED.withDescription("need login first").asRuntimeException());
             return null;
@@ -78,7 +78,7 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
         return new StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest>() {
             @Override
             public void onNext(me.lecoding.grpclearning.PartyOuterClass.HealthRequest value) {
-                log.info("got message from {} :{}",user.getNickname(),value.getMessage());
+                log.info("got message from {} :{}",user.getUserName(),value.getMessage());
                 broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
                         .newBuilder()
                         .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
@@ -86,14 +86,14 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
                                 me.lecoding.grpclearning.PartyOuterClass.HealthResponse.Message
                                         .newBuilder()
                                         .setMsg(value.getMessage())
-                                        .setName(user.getNickname())
+                                        .setName(user.getUserName())
                                         .build()
                         ).build());
             }
 
             @Override
             public void onError(Throwable t) {
-                log.error("got error from {}",user.getNickname(),t);
+                log.error("got error from {}",user.getUserName(),t);
                 userLogout(responseObserver,user);
             }
             @Override
@@ -103,7 +103,8 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
         };
     }
 
-    private void userLogout(StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> responseObserver,User user){
+    private void userLogout(StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> responseObserver,
+                            UserDTO user){
         clients.remove(responseObserver);
         broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
                 .newBuilder()
@@ -111,7 +112,7 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
                 .setRoleLogout(
                         me.lecoding.grpclearning.PartyOuterClass.HealthResponse.Logout
                                 .newBuilder()
-                                .setName(user.getNickname())
+                                .setName(user.getUserName())
                                 .build()
                 ).build());
     }
@@ -120,5 +121,4 @@ public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
             resp.onNext(msg);
         }
     }
-
 }
