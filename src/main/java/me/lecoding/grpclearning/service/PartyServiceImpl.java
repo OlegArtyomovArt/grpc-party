@@ -38,7 +38,7 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
     private Map<String, StreamObserver<PartyOuterClass.HealthResponse>> clients = Maps.newHashMap();
 
     private Cache<String, Long> health = CacheBuilder.newBuilder()
-            .expireAfterWrite(2, TimeUnit.MINUTES)
+            .expireAfterAccess(2, TimeUnit.MINUTES)
             .removalListener((RemovalListener<String, Long>) notification -> cleanDataAndNotifyAll(notification.getKey()))
             .build();
 
@@ -97,7 +97,7 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
             public void onNext(me.lecoding.grpclearning.PartyOuterClass.HealthRequest value) {
                 log.info("got health message from {}: {}", user.getUserName(), value.getMessage());
                 try {
-                    health.put(user.getUserName(), System.currentTimeMillis());
+                    health.get(user.getUserName(), System::currentTimeMillis);
                 } catch (Exception e) {
                     log.error("Error dur load", e);
                     throw new RuntimeException(e);
