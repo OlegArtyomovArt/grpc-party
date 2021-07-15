@@ -20,7 +20,7 @@ import java.util.Set;
 
 @GRpcService(interceptors = {RoleServerInterceptor.class})
 @Slf4j
-public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
+public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
     @Autowired
     private UserService userService;
     @Autowired

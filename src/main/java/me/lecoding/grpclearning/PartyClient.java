@@ -13,18 +13,18 @@ import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class ChatClient {
+public class PartyClient {
     private final ManagedChannel channel;
     private PartyGrpc.PartyBlockingStub blockingStub;
     private StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest> chat;
     private String token = "";
     private boolean Loggined = false;
 
-    public ChatClient(String host, int port) {
+    public PartyClient(String host, int port) {
         this(ManagedChannelBuilder.forAddress(host, port).usePlaintext().build());
     }
 
-    private ChatClient(ManagedChannel channel) {
+    private PartyClient(ManagedChannel channel) {
         this.channel = channel;
         blockingStub = PartyGrpc.newBlockingStub(channel);
     }
@@ -116,7 +116,7 @@ public class ChatClient {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        ChatClient client = new ChatClient("localhost", 8000);
+        PartyClient client = new PartyClient("localhost", 8000);
         try {
             String name = "";
             Scanner sc = new Scanner(System.in);
