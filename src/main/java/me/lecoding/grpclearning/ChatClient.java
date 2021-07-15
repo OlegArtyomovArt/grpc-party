@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class ChatClient {
     private final ManagedChannel channel;
     private ChatRoomGrpc.ChatRoomBlockingStub blockingStub;
-    private StreamObserver<Chat.ChatRequest> chat;
+    private StreamObserver<Chat.HealthRequest> chat;
     private String token = "";
     private boolean Loggined = false;
     public ChatClient(String host, int port) {
@@ -52,9 +52,9 @@ public class ChatClient {
         Metadata meta = new Metadata();
         meta.put(Constant.HEADER_ROLE,this.token);
 
-        chat =  MetadataUtils.attachHeaders(ChatRoomGrpc.newStub(this.channel),meta).chat(new StreamObserver<Chat.ChatResponse>() {
+        chat =  MetadataUtils.attachHeaders(ChatRoomGrpc.newStub(this.channel),meta).health(new StreamObserver<Chat.HealthResponse>() {
             @Override
-            public void onNext(Chat.ChatResponse value) {
+            public void onNext(Chat.HealthResponse value) {
                 switch (value.getEventCase()){
                     case ROLE_LOGIN:
                     {
@@ -105,7 +105,7 @@ public class ChatClient {
             this.Loggined = false;
             shutdown();
         }else{
-            if(this.chat != null) this.chat.onNext(Chat.ChatRequest.newBuilder().setMessage(msg).build());
+            if(this.chat != null) this.chat.onNext(Chat.HealthRequest.newBuilder().setMessage(msg).build());
         }
     }
 

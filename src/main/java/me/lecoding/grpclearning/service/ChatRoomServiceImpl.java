@@ -5,8 +5,7 @@ import com.google.protobuf.util.Timestamps;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import me.lecoding.grpclearning.Chat;
-import me.lecoding.grpclearning.ChatRoomGrpc;
+import me.lecoding.grpclearning.PartyGrpc;
 import me.lecoding.grpclearning.common.Constant;
 import me.lecoding.grpclearning.common.JWTUtils;
 import me.lecoding.grpclearning.interceptor.RoleServerInterceptor;
@@ -21,31 +20,32 @@ import java.util.Set;
 
 @GRpcService(interceptors = {RoleServerInterceptor.class})
 @Slf4j
-public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
+public class ChatRoomServiceImpl extends PartyGrpc.PartyImplBase {
     @Autowired
     private UserService userService;
     @Autowired
     private OnlineUserManager onlineUserManager;
     @Autowired
     private JWTUtils jwtUtils;
-    private Set<StreamObserver<Chat.ChatResponse>> clients = Sets.newConcurrentHashSet();
+
+    private Set<StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse>> clients = Sets.newConcurrentHashSet();
 
     @Override
-    public void login(Chat.LoginRequest request, StreamObserver<Chat.LoginResponse> responseObserver) {
+    public void login(me.lecoding.grpclearning.PartyOuterClass.LoginRequest  request, io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.LoginResponse> responseObserver) {
         User user= userService.checkUser(request.getName(),request.getPassword());
         if(Objects.isNull(user)){
             responseObserver.onError(Status.fromCode(Status.UNAUTHENTICATED.getCode()).withDescription("uasername or password error").asRuntimeException());
             return;
         }
         onlineUserManager.addUser(user);
-        responseObserver.onNext(Chat.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getId())).build());
+        responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getId())).build());
         responseObserver.onCompleted();
         log.info("user {} login OK!",request.getName());
-        boardCast(Chat.ChatResponse
+        broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
             .newBuilder()
             .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
             .setRoleLogin(
-                Chat.ChatResponse.Login
+                    me.lecoding.grpclearning.PartyOuterClass.HealthResponse.Login
                     .newBuilder()
                     .setName(request.getName())
                     .build()
@@ -53,18 +53,20 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
     }
 
     @Override
-    public void logout(Chat.LogoutRequest request, StreamObserver<Chat.LogoutResponse> responseObserver) {
+    public void logout(me.lecoding.grpclearning.PartyOuterClass.LogoutRequest request,
+                       io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.LogoutResponse> responseObserver) {
         User user = Constant.CONTEXT_ROLE.get();
         if(!Objects.isNull(user)) {
             log.info("user logout:{}", user.getUsername());
             onlineUserManager.removeUserById(user.getId());
         }
-        responseObserver.onNext(Chat.LogoutResponse.newBuilder().build());
+        responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LogoutResponse.newBuilder().build());
         responseObserver.onCompleted();
     }
 
     @Override
-    public StreamObserver<Chat.ChatRequest> chat(StreamObserver<Chat.ChatResponse> responseObserver) {
+    public io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest> health(
+            io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> responseObserver) {
         clients.add(responseObserver);
         User user = Constant.CONTEXT_ROLE.get();
         if(Objects.isNull(user)) {
@@ -73,15 +75,15 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
         }
 
 
-        return new StreamObserver<Chat.ChatRequest>() {
+        return new StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest>() {
             @Override
-            public void onNext(Chat.ChatRequest value) {
+            public void onNext(me.lecoding.grpclearning.PartyOuterClass.HealthRequest value) {
                 log.info("got message from {} :{}",user.getNickname(),value.getMessage());
-                boardCast(Chat.ChatResponse
+                broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
                         .newBuilder()
                         .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
                         .setRoleMessage(
-                                Chat.ChatResponse.Message
+                                me.lecoding.grpclearning.PartyOuterClass.HealthResponse.Message
                                         .newBuilder()
                                         .setMsg(value.getMessage())
                                         .setName(user.getNickname())
@@ -101,20 +103,20 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
         };
     }
 
-    private void userLogout(StreamObserver<Chat.ChatResponse> responseObserver,User user){
+    private void userLogout(StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> responseObserver,User user){
         clients.remove(responseObserver);
-        boardCast(Chat.ChatResponse
+        broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
                 .newBuilder()
                 .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
                 .setRoleLogout(
-                        Chat.ChatResponse.Logout
+                        me.lecoding.grpclearning.PartyOuterClass.HealthResponse.Logout
                                 .newBuilder()
                                 .setName(user.getNickname())
                                 .build()
                 ).build());
     }
-    private void boardCast(Chat.ChatResponse msg){
-        for(StreamObserver<Chat.ChatResponse> resp : clients){
+    private void broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse msg){
+        for(StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> resp : clients){
             resp.onNext(msg);
         }
     }

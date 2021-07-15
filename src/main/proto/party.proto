@@ -4,10 +4,10 @@ package me.lecoding.grpclearning;
 
 import "google/protobuf/timestamp.proto";
 
-service ChatRoom{
+service Party{
     rpc Login(LoginRequest) returns(LoginResponse);
     rpc Logout(LogoutRequest) returns(LogoutResponse);
-    rpc Chat(stream ChatRequest) returns(stream ChatResponse);
+    rpc health(stream HealthRequest) returns(stream HealthResponse);
 }
 message LoginRequest{
     string name = 1;
@@ -22,10 +22,11 @@ message LogoutRequest{
 message LogoutResponse{
 }
 
-message ChatRequest{
+message HealthRequest{
     string message =1;
 }
-message ChatResponse{
+
+message HealthResponse{
     google.protobuf.Timestamp  timestamp =1;
     oneof event{
         Login role_login = 2;
@@ -45,3 +46,6 @@ message ChatResponse{
     }
     message ShutDown{}
 }
+
+
+
