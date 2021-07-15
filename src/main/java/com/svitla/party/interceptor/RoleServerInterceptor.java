@@ -32,7 +32,7 @@ public class RoleServerInterceptor implements ServerInterceptor {
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(ServerCall<ReqT, RespT> call, Metadata headers, ServerCallHandler<ReqT, RespT> next) {
         Context ctx = Context.current();
-        if (!"me.lecoding.grpclearning.Party/Login".equals(call.getMethodDescriptor().getFullMethodName())) {
+        if (!"com.svitla.party.Party/Login".equals(call.getMethodDescriptor().getFullMethodName())) {
             String token = headers.get(Constant.HEADER_ROLE);
             if (token == null) {
                 call.close(Status.UNAUTHENTICATED.withDescription("need login first!"), headers);
