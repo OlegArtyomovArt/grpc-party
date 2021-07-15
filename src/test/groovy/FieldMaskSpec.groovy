@@ -2,7 +2,7 @@ import com.google.protobuf.FieldMask
 import com.google.protobuf.Timestamp
 import com.google.protobuf.util.FieldMaskUtil
 import com.google.protobuf.util.Timestamps
-import me.lecoding.grpclearning.api.UserOuterClass
+import com.svitla.party.api.UserOuterClass
 import spock.lang.Specification
 
 class FieldMaskSpec  extends Specification{
