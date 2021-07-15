@@ -4,6 +4,7 @@ import com.google.common.collect.Sets;
 import com.google.protobuf.util.Timestamps;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
 import me.lecoding.grpclearning.Chat;
 import me.lecoding.grpclearning.ChatRoomGrpc;
 import me.lecoding.grpclearning.common.Constant;
@@ -13,19 +14,20 @@ import me.lecoding.grpclearning.manager.OnlineUserManager;
 import me.lecoding.grpclearning.user.User;
 import me.lecoding.grpclearning.user.UserService;
 import org.lognet.springboot.grpc.GRpcService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Objects;
 import java.util.Set;
 
 @GRpcService(interceptors = {RoleServerInterceptor.class})
+@Slf4j
 public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
+    @Autowired
     private UserService userService;
+    @Autowired
     private OnlineUserManager onlineUserManager;
+    @Autowired
     private JWTUtils jwtUtils;
-    private static Logger logger = LoggerFactory.getLogger(ChatRoomServiceImpl.class);
     private Set<StreamObserver<Chat.ChatResponse>> clients = Sets.newConcurrentHashSet();
 
     @Override
@@ -38,7 +40,7 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
         onlineUserManager.addUser(user);
         responseObserver.onNext(Chat.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getId())).build());
         responseObserver.onCompleted();
-        logger.info("user {} login OK!",request.getName());
+        log.info("user {} login OK!",request.getName());
         boardCast(Chat.ChatResponse
             .newBuilder()
             .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
@@ -54,7 +56,7 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
     public void logout(Chat.LogoutRequest request, StreamObserver<Chat.LogoutResponse> responseObserver) {
         User user = Constant.CONTEXT_ROLE.get();
         if(!Objects.isNull(user)) {
-            logger.info("user logout:{}", user.getUsername());
+            log.info("user logout:{}", user.getUsername());
             onlineUserManager.removeUserById(user.getId());
         }
         responseObserver.onNext(Chat.LogoutResponse.newBuilder().build());
@@ -74,7 +76,7 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
         return new StreamObserver<Chat.ChatRequest>() {
             @Override
             public void onNext(Chat.ChatRequest value) {
-                logger.info("got message from {} :{}",user.getNickname(),value.getMessage());
+                log.info("got message from {} :{}",user.getNickname(),value.getMessage());
                 boardCast(Chat.ChatResponse
                         .newBuilder()
                         .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
@@ -89,7 +91,7 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
 
             @Override
             public void onError(Throwable t) {
-                logger.error("got error from {}",user.getNickname(),t);
+                log.error("got error from {}",user.getNickname(),t);
                 userLogout(responseObserver,user);
             }
             @Override
@@ -117,16 +119,4 @@ public class ChatRoomServiceImpl extends ChatRoomGrpc.ChatRoomImplBase {
         }
     }
 
-    @Autowired
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-    @Autowired
-    public void setJwtUtils(JWTUtils jwtUtils) {
-        this.jwtUtils = jwtUtils;
-    }
-    @Autowired
-    public void setOnlineUserManager(OnlineUserManager onlineUserManager) {
-        this.onlineUserManager = onlineUserManager;
-    }
 }

@@ -40,6 +40,9 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-security'
     compile 'org.springframework.security:spring-security-oauth2-core'
     compile 'org.springframework.security:spring-security-oauth2-jose'
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
     testCompile 'org.spockframework.spock:spock-core:spock-1.2'
     testImplementation('org.springframework.boot:spring-boot-starter-test')
 }

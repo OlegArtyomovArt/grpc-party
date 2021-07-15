@@ -3,11 +3,13 @@ package me.lecoding.grpclearning;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptors;
+import lombok.extern.slf4j.Slf4j;
 import me.lecoding.grpclearning.interceptor.RoleServerInterceptor;
 import me.lecoding.grpclearning.service.ChatRoomServiceImpl;
 
 import java.io.IOException;
 
+@Slf4j
 public class ChatServer {
     private Server server;
     private void start() throws IOException {
@@ -17,9 +19,9 @@ public class ChatServer {
                 .build()
                 .start();
         Runtime.getRuntime().addShutdownHook(new Thread(()->{
-            System.err.println("*** shutting down grpc server since JVM is shutting down");
+            log.info("*** shutting down grpc server since JVM is shutting down");
             ChatServer.this.stop();
-            System.err.println("*** server shut down");
+            log.info("*** server shut down");
         }));
     }
     private void stop(){
@@ -36,6 +38,7 @@ public class ChatServer {
     public static void main(String[] args) throws InterruptedException, IOException {
         final ChatServer server = new ChatServer();
         server.start();
+        log.info("Server is started");
         server.blockUntilShutdown();
     }
 }

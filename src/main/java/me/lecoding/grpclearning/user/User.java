@@ -10,7 +10,6 @@ import java.util.Date;
 
 @Entity
 @Table(name="t_user")
-@EnableTransactionManagement
 public class User {
     @Id
     private String id;

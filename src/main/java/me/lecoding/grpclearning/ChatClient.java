@@ -6,15 +6,14 @@ import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.MetadataUtils;
 import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
 import me.lecoding.grpclearning.common.Constant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class ChatClient {
-    private static Logger logger = LoggerFactory.getLogger(ChatClient.class);
     private final ManagedChannel channel;
     private ChatRoomGrpc.ChatRoomBlockingStub blockingStub;
     private StreamObserver<Chat.ChatRequest> chat;
@@ -39,10 +38,10 @@ public class ChatClient {
         try {
             response = blockingStub.login(request);
         } catch (StatusRuntimeException e) {
-            logger.error("rpc failed with status:" + e.getStatus() + " message:" + e.getMessage());
+            log.error("rpc failed with status: {}, message: {}",e.getStatus(), e.getMessage());
             return false;
         }
-        logger.info("login with name {} OK!",name);
+        log.info("login with name {} OK!",name);
         this.token = response.getToken();
         this.Loggined = true;
         startReceive();
@@ -59,27 +58,27 @@ public class ChatClient {
                 switch (value.getEventCase()){
                     case ROLE_LOGIN:
                     {
-                        logger.info("user {}:login!!",value.getRoleLogin().getName());
+                        log.info("user {}:login!!",value.getRoleLogin().getName());
                     }
                     break;
                     case ROLE_LOGOUT:
                     {
-                        logger.info("user {}:logout!!",value.getRoleLogout().getName());
+                        log.info("user {}:logout!!",value.getRoleLogout().getName());
                     }
                     break;
                     case ROLE_MESSAGE:
                     {
-                        logger.info("user {}:{}",value.getRoleMessage().getName(),value.getRoleMessage().getMsg());
+                        log.info("user {}:{}",value.getRoleMessage().getName(),value.getRoleMessage().getMsg());
                     }
                     break;
                     case EVENT_NOT_SET:
                     {
-                        logger.error("receive event error:{}",value);
+                        log.error("receive event error:{}",value);
                     }
                     break;
                     case SERVER_SHUTDOWN:
                     {
-                        logger.info("server closed!");
+                        log.info("server closed!");
                         logout();
                     }
                     break;
@@ -87,12 +86,12 @@ public class ChatClient {
             }
             @Override
             public void onError(Throwable t) {
-                logger.error("got error from server:{}",t.getMessage(),t);
+                log.error("got error from server:{}",t.getMessage(),t);
             }
 
             @Override
             public void onCompleted() {
-                logger.info("closed by server");
+                log.info("closed by server");
             }
         });
         Metadata header = new Metadata();
@@ -112,7 +111,7 @@ public class ChatClient {
 
     public void logout(){
         Chat.LogoutResponse resp = blockingStub.logout(Chat.LogoutRequest.newBuilder().build());
-        logger.info("logout result:{}",resp);
+        log.info("logout result:{}",resp);
     }
 
     public static void main(String[] args) throws InterruptedException {
