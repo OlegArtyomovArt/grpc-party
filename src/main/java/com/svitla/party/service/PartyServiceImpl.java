@@ -3,7 +3,6 @@ package com.svitla.party.service;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.protobuf.util.Timestamps;
 import com.svitla.party.PartyGrpc;
@@ -18,13 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 
@@ -149,44 +144,11 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
     }
 
     @Scheduled(cron = "${cleanInActiveUsers.cron}")
-    public void clearCacheTask(){
+    public void clearCacheTask() {
         long currentSize = health.size();
         health.cleanUp();
         long sizeAfterCache = health.size();
         log.info("Cache data before clean: {}, after: {}", currentSize, sizeAfterCache);
     }
 
-    /**
-     * UserService
-     */
-    @Service
-    public static class UserService {
-        private List<UserDTO> predefinedUsers = Lists.newArrayList();
-
-        public UserDTO checkUser(String username, String password) {
-            Optional<UserDTO> userDTO = predefinedUsers.stream().filter(item -> item.getUserName().equals(username)).findFirst();
-            if (userDTO.isPresent()) {
-                UserDTO result = userDTO.get();
-                if (result.getPassword().equals(password)) {
-                    return result;
-                }
-            }
-            return null;
-        }
-
-
-        @PostConstruct
-        private void afterConstruction() {
-            predefinedUsers.add(UserDTO.builder().userName("jack")
-                    .password("AAA")
-                    .build());
-            predefinedUsers.add(UserDTO.builder().userName("max")
-                    .password("AAA")
-                    .build());
-            predefinedUsers.add(UserDTO.builder().userName("andy")
-                    .password("AAA")
-                    .build());
-
-        }
-    }
 }
