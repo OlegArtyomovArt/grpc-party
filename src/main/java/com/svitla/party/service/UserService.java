@@ -1,6 +1,7 @@
-package com.svitla.party.user;
+package com.svitla.party.service;
 
 import com.google.common.collect.Lists;
+import com.svitla.party.user.UserDTO;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;

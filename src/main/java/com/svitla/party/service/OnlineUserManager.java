@@ -1,4 +1,4 @@
-package com.svitla.party.manager;
+package com.svitla.party.service;
 
 import com.google.common.collect.Maps;
 import com.svitla.party.user.UserDTO;

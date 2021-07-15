@@ -1,6 +1,6 @@
 syntax ="proto3";
 
-package me.lecoding.grpclearning;
+package com.svitla.party;
 
 import "google/protobuf/timestamp.proto";
 
