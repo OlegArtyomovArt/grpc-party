@@ -54,6 +54,7 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
         responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getUserName())).build());
         responseObserver.onCompleted();
         log.info("user {} login OK!", request.getName());
+        //Notify all users that  new user logged to party
         broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
                 .newBuilder()
                 .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
@@ -126,6 +127,7 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
         log.info("Logout for user: {}", userName);
         clients.remove(userName);
         onlineUserManager.removeUserById(userName);
+        //Notify all users that  new user logged out from party
         broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
                 .newBuilder()
                 .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
