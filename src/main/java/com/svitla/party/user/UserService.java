@@ -1,4 +1,4 @@
-package me.lecoding.grpclearning.user;
+package com.svitla.party.user;
 
 import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;

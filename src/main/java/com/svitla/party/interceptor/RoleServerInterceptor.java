@@ -1,5 +1,8 @@
-package me.lecoding.grpclearning.interceptor;
+package com.svitla.party.interceptor;
 
+import com.svitla.party.common.Constant;
+import com.svitla.party.common.JWTUtils;
+import com.svitla.party.user.UserDTO;
 import io.grpc.Context;
 import io.grpc.Contexts;
 import io.grpc.Metadata;
@@ -8,10 +11,7 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 import lombok.extern.slf4j.Slf4j;
-import me.lecoding.grpclearning.common.Constant;
-import me.lecoding.grpclearning.common.JWTUtils;
-import me.lecoding.grpclearning.manager.OnlineUserManager;
-import me.lecoding.grpclearning.user.UserDTO;
+import com.svitla.party.manager.OnlineUserManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -1,5 +1,6 @@
-package me.lecoding.grpclearning;
+package com.svitla.party;
 
+import com.svitla.party.common.Constant;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Metadata;
@@ -7,7 +8,6 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.MetadataUtils;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import me.lecoding.grpclearning.common.Constant;
 
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class PartyClient {
     private final ManagedChannel channel;
     private PartyGrpc.PartyBlockingStub blockingStub;
-    private StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest> chat;
+    private StreamObserver<PartyOuterClass.HealthRequest> chat;
     private String token = "";
     private boolean Loggined = false;
 
@@ -34,8 +34,7 @@ public class PartyClient {
     }
 
     public boolean login(String name) {
-        me.lecoding.grpclearning.PartyOuterClass.LoginRequest request = me.lecoding.grpclearning
-                .PartyOuterClass.LoginRequest.newBuilder()
+        PartyOuterClass.LoginRequest request = PartyOuterClass.LoginRequest.newBuilder()
                 .setName(name)
                 .setPassword("AAA")
                 .build();
@@ -57,9 +56,9 @@ public class PartyClient {
         Metadata meta = new Metadata();
         meta.put(Constant.HEADER_ROLE, this.token);
 
-        chat = MetadataUtils.attachHeaders(PartyGrpc.newStub(this.channel), meta).health(new StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse>() {
+        chat = MetadataUtils.attachHeaders(PartyGrpc.newStub(this.channel), meta).health(new StreamObserver<PartyOuterClass.HealthResponse>() {
             @Override
-            public void onNext(me.lecoding.grpclearning.PartyOuterClass.HealthResponse value) {
+            public void onNext(PartyOuterClass.HealthResponse value) {
                 switch (value.getEventCase()) {
                     case ROLE_LOGIN: {
                         log.info("user {}:login!!", value.getRoleLogin().getName());

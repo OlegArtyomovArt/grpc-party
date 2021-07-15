@@ -1,4 +1,4 @@
-package me.lecoding.grpclearning;
+package com.svitla.party;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

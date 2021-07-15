@@ -1,4 +1,4 @@
-package me.lecoding.grpclearning.interceptor;
+package com.svitla.party.interceptor;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;

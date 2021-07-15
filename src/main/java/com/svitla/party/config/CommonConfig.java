@@ -1,4 +1,4 @@
-package me.lecoding.grpclearning.config;
+package com.svitla.party.config;
 
 import com.google.gson.Gson;
 import com.nimbusds.jose.JWSSigner;

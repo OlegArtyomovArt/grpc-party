@@ -1,8 +1,8 @@
-package me.lecoding.grpclearning.common;
+package com.svitla.party.common;
 
+import com.svitla.party.user.UserDTO;
 import io.grpc.Context;
 import io.grpc.Metadata;
-import me.lecoding.grpclearning.user.UserDTO;
 
 public class Constant {
     public static final Metadata.Key<String> HEADER_ROLE = Metadata.Key.of("role_name",Metadata.ASCII_STRING_MARSHALLER);

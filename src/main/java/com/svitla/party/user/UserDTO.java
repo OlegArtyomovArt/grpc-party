@@ -1,4 +1,4 @@
-package me.lecoding.grpclearning.user;
+package com.svitla.party.user;
 
 
 import lombok.Builder;

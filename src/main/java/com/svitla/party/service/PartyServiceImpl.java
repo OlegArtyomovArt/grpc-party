@@ -1,21 +1,21 @@
-package me.lecoding.grpclearning.service;
+package com.svitla.party.service;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalListener;
 import com.google.common.collect.Maps;
 import com.google.protobuf.util.Timestamps;
+import com.svitla.party.PartyGrpc;
+import com.svitla.party.PartyOuterClass;
+import com.svitla.party.common.Constant;
+import com.svitla.party.common.JWTUtils;
+import com.svitla.party.interceptor.RoleServerInterceptor;
+import com.svitla.party.manager.OnlineUserManager;
+import com.svitla.party.user.UserDTO;
+import com.svitla.party.user.UserService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
-import me.lecoding.grpclearning.PartyGrpc;
-import me.lecoding.grpclearning.PartyOuterClass;
-import me.lecoding.grpclearning.common.Constant;
-import me.lecoding.grpclearning.common.JWTUtils;
-import me.lecoding.grpclearning.interceptor.RoleServerInterceptor;
-import me.lecoding.grpclearning.manager.OnlineUserManager;
-import me.lecoding.grpclearning.user.UserDTO;
-import me.lecoding.grpclearning.user.UserService;
 import org.lognet.springboot.grpc.GRpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -44,22 +44,22 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
 
 
     @Override
-    public void login(me.lecoding.grpclearning.PartyOuterClass.LoginRequest request, io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.LoginResponse> responseObserver) {
+    public void login(PartyOuterClass.LoginRequest request, io.grpc.stub.StreamObserver<PartyOuterClass.LoginResponse> responseObserver) {
         UserDTO user = userService.checkUser(request.getName(), request.getPassword());
         if (Objects.isNull(user)) {
             responseObserver.onError(Status.fromCode(Status.UNAUTHENTICATED.getCode()).withDescription("uasername or password error").asRuntimeException());
             return;
         }
         loginUser(user);
-        responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getUserName())).build());
+        responseObserver.onNext(PartyOuterClass.LoginResponse.newBuilder().setToken(jwtUtils.generateToken(user.getUserName())).build());
         responseObserver.onCompleted();
         log.info("user {} login OK!", request.getName());
         //Notify all users that  new user logged to party
-        broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
+        broadcast(PartyOuterClass.HealthResponse
                 .newBuilder()
                 .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
                 .setRoleLogin(
-                        me.lecoding.grpclearning.PartyOuterClass.HealthResponse.Login
+                        PartyOuterClass.HealthResponse.Login
                                 .newBuilder()
                                 .setName(request.getName())
                                 .build()
@@ -72,20 +72,20 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
     }
 
     @Override
-    public void logout(me.lecoding.grpclearning.PartyOuterClass.LogoutRequest request,
-                       io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.LogoutResponse> responseObserver) {
+    public void logout(PartyOuterClass.LogoutRequest request,
+                       io.grpc.stub.StreamObserver<PartyOuterClass.LogoutResponse> responseObserver) {
         UserDTO user = Constant.CONTEXT_ROLE.get();
         if (!Objects.isNull(user)) {
             log.info("user logout:{}", user.getUserName());
             userLogout(user);
         }
-        responseObserver.onNext(me.lecoding.grpclearning.PartyOuterClass.LogoutResponse.newBuilder().build());
+        responseObserver.onNext(PartyOuterClass.LogoutResponse.newBuilder().build());
         responseObserver.onCompleted();
     }
 
     @Override
-    public io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest> health(
-            io.grpc.stub.StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> responseObserver) {
+    public io.grpc.stub.StreamObserver<PartyOuterClass.HealthRequest> health(
+            io.grpc.stub.StreamObserver<PartyOuterClass.HealthResponse> responseObserver) {
         UserDTO user = Constant.CONTEXT_ROLE.get();
         if (Objects.isNull(user)) {
             responseObserver.onError(Status.UNAUTHENTICATED.withDescription("need login first").asRuntimeException());
@@ -93,9 +93,9 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
         }
         clients.put(user.getUserName(), responseObserver);
 
-        return new StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthRequest>() {
+        return new StreamObserver<PartyOuterClass.HealthRequest>() {
             @Override
-            public void onNext(me.lecoding.grpclearning.PartyOuterClass.HealthRequest value) {
+            public void onNext(PartyOuterClass.HealthRequest value) {
                 log.info("got health message from {}: {}", user.getUserName(), value.getMessage());
                 try {
                     health.get(user.getUserName(), System::currentTimeMillis);
@@ -128,19 +128,19 @@ public class PartyServiceImpl extends PartyGrpc.PartyImplBase {
         clients.remove(userName);
         onlineUserManager.removeUserById(userName);
         //Notify all users that  new user logged out from party
-        broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse
+        broadcast(PartyOuterClass.HealthResponse
                 .newBuilder()
                 .setTimestamp(Timestamps.fromMillis(System.currentTimeMillis()))
                 .setRoleLogout(
-                        me.lecoding.grpclearning.PartyOuterClass.HealthResponse.Logout
+                        PartyOuterClass.HealthResponse.Logout
                                 .newBuilder()
                                 .setName(userName)
                                 .build()
                 ).build());
     }
 
-    private void broadcast(me.lecoding.grpclearning.PartyOuterClass.HealthResponse msg) {
-        for (StreamObserver<me.lecoding.grpclearning.PartyOuterClass.HealthResponse> resp : clients.values()) {
+    private void broadcast(PartyOuterClass.HealthResponse msg) {
+        for (StreamObserver<PartyOuterClass.HealthResponse> resp : clients.values()) {
             resp.onNext(msg);
         }
     }

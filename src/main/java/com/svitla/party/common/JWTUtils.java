@@ -1,4 +1,4 @@
-package me.lecoding.grpclearning.common;
+package com.svitla.party.common;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;

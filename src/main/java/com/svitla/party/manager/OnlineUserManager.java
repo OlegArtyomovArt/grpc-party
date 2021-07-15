@@ -1,7 +1,7 @@
-package me.lecoding.grpclearning.manager;
+package com.svitla.party.manager;
 
 import com.google.common.collect.Maps;
-import me.lecoding.grpclearning.user.UserDTO;
+import com.svitla.party.user.UserDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
