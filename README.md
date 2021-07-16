@@ -31,15 +31,15 @@
 
 - Run client java -cp /home/osboxes/grpc-java-chat/target/party-participant-service-0.1.jar com.party.participant.PartyClient
 
-#General architecture
+## General architecture
  - We have 3 predefined users: jack, max, andy. Use it to login (passwords now hardcoded)
  - health channel used to send health call from mobile app. If no health calls during 2 minutes, user is automatically logged out from
  - Enter LOGOUT to leave party.
 
-#GRPC operations:
-   Login - join party
-   Logout - leave party
-   health - channel for receive notification, that mobile app still leave.
+## GRPC operations:
+   - Login - join party
+   - Logout - leave party
+   - health - channel for receive notification, that mobile app still live.
 
-#Restrictions:
+## Restrictions:
    We don't support multiple parties now. All users are joining the same party.
