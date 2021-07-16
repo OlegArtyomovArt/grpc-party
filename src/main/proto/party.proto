@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.party.participant.grpc.generated";
+option java_outer_classname = "PartyParticipantService";
+option objc_class_prefix = "HLW";
+
+package com.party.participant;
+
+import "google/protobuf/timestamp.proto";
+
+service Party{
+  rpc Login(JoinRequest) returns(JoinResponse);
+  rpc Logout(LeaveRequest) returns(LeaveResponse);
+  rpc health(stream HealthRequest) returns(stream HealthResponse);
+}
+message JoinRequest{
+  string name = 1;
+  string password = 2;
+}
+message JoinResponse{
+  string token = 1;
+}
+
+message LeaveRequest{
+}
+message LeaveResponse{
+}
+
+message HealthRequest{
+  string message = 1;
+}
+
+message HealthResponse{
+  google.protobuf.Timestamp  timestamp = 1;
+  oneof event{
+    Login role_login = 2;
+    Logout role_logout = 3;
+    Message role_message = 4;
+    ShutDown server_shutdown = 5;
+  }
+  message Login{
+    string name = 1;
+  }
+  message Logout{
+    string name = 1;
+  }
+  message Message{
+    string name = 1;
+    string msg = 2;
+  }
+  message ShutDown{}
+}
+
+
+

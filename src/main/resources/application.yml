@@ -1,0 +1,13 @@
+micronaut:
+  application:
+    name: partyParticipantService
+grpc:
+  server:
+    port: 8000
+    keep-alive-time: 3h
+    max-inbound-message-size: 1024
+
+cleanInActiveUsers:
+  cron: 0 * * * * *
+jwt:
+  secret: Xfo3pPWTYR5L_ZPe4mQ7jftzx43Pd-yQ231YNCrkiYIGitIS6t9X8wawacUmJVJbOWODCzaw4fhrQNKNY4EjpftWVZskjDxBJZyeremzMxOAXSRk2kORgkRJRqRnN4k2TCszqcoC7yZRXw9nvCfBYAZ2kH0K5X0er8vrslw6-V4geRU3-2WowI3Z24TOh1wdF0_mk_5Al_y2aVxgCOjF1xIYcdK1euBsMj4qQ-T0YN7TaYNVomkB2fMJB0ducGf
